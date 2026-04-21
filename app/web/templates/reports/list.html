@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Reports &middot; {{ app_title }}{% endblock %}
+
+{% block content %}
+<section class="section">
+  <header class="section__header">
+    <h1>Reports</h1>
+    <a href="/reports/new" class="btn btn--primary">New report</a>
+  </header>
+
+  {% if summaries %}
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Filename</th>
+        <th>Cards</th>
+        <th>Datasets</th>
+        <th>Destinations</th>
+        <th>Schedule</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for row in summaries %}
+      <tr>
+        <td><a href="/reports/{{ row.filename }}">{{ row.name }}</a></td>
+        <td><code>{{ row.filename }}</code></td>
+        <td>{{ row.cards_count }}</td>
+        <td>{{ row.datasets_count }}</td>
+        <td>{{ row.destinations_count }}</td>
+        <td>{{ row.schedule or '-' }}</td>
+        <td class="table__actions">
+          <a href="/reports/{{ row.filename }}" class="btn btn--ghost">Edit</a>
+          <form method="post" action="/reports/{{ row.filename }}/delete" class="inline-form"
+                onsubmit="return confirm('Delete {{ row.filename }}?');">
+            <input type="hidden" name="csrf_token" value="{{ request.cookies.get('domo_csrf', '') }}">
+            <button type="submit" class="btn btn--danger">Delete</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="empty">No reports found. Create your first YAML report to get started.</p>
+  {% endif %}
+</section>
+{% endblock %}

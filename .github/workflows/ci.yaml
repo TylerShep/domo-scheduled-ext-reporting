@@ -7,17 +7,18 @@ on:
     branches: [main]
 
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.ref }}-${{ github.workflow }}
   cancel-in-progress: true
 
 jobs:
   test:
-    name: Test (Python ${{ matrix.python-version }})
+    name: Test (Python ${{ matrix.python-version }} / ${{ matrix.extras }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         python-version: ["3.10", "3.11", "3.12"]
+        extras: ["dev", "dev,web,metrics"]
     steps:
       - uses: actions/checkout@v4
 
@@ -31,10 +32,19 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install -r requirements.txt
-          pip install -e ".[dev]"
+          pip install -e ".[${{ matrix.extras }}]"
 
-      - name: Run pytest
-        run: pytest --cov=app --cov-report=term
+      - name: Run pytest with coverage
+        run: pytest --cov=app --cov-report=term --cov-report=xml
+
+      - name: Upload coverage artifact
+        if: matrix.python-version == '3.12' && matrix.extras == 'dev,web,metrics'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-xml
+          path: coverage.xml
+          if-no-files-found: warn
+          retention-days: 14
 
   lint:
     name: Lint
@@ -51,7 +61,7 @@ jobs:
       - name: Install dev dependencies
         run: |
           pip install --upgrade pip
-          pip install -e ".[dev]"
+          pip install -e ".[dev,web,metrics]"
 
       - name: ruff check
         run: ruff check app tests
@@ -64,5 +74,36 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Build image
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build runtime image (no JRE)
         run: docker build -t domo-scheduled-ext-reporting:ci .
+
+      - name: Build runtime image (with JRE + JAR download)
+        # Best-effort -- requires network access to GitHub Releases; allow
+        # failure so release-blocked builds don't red-X every PR.
+        continue-on-error: true
+        run: docker build --build-arg INSTALL_JRE=true -t domo-scheduled-ext-reporting:ci-jre .
+
+  smoke:
+    name: CLI smoke tests
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install
+        run: |
+          pip install --upgrade pip
+          pip install -e ".[dev,web,metrics]"
+      - name: --list-engines
+        run: domo-report --list-engines
+      - name: --list-destinations
+        run: domo-report --list-destinations
+      - name: --doctor (will fail with missing env, but must not crash)
+        run: domo-report --doctor || true

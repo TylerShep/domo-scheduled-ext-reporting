@@ -6,12 +6,13 @@ import time (e.g. from your project's ``main.py`` or a service module).
 
 from __future__ import annotations
 
-from typing import Callable
+from collections.abc import Callable
 
 from app.destinations.base import Destination
+from app.destinations.email import EmailDestination
+from app.destinations.file import FileDestination
 from app.destinations.slack import SlackDestination
 from app.destinations.teams import make_teams_destination
-
 
 DestinationFactory = Callable[..., Destination]
 
@@ -19,6 +20,8 @@ DestinationFactory = Callable[..., Destination]
 _REGISTRY: dict[str, DestinationFactory] = {
     "slack": SlackDestination,
     "teams": make_teams_destination,
+    "file": FileDestination,
+    "email": EmailDestination,
 }
 
 
@@ -47,9 +50,7 @@ def build_destination(spec: dict) -> Destination:
         factory = _REGISTRY[dest_type]
     except KeyError as exc:
         known = sorted(_REGISTRY.keys())
-        raise KeyError(
-            f"Unknown destination type {dest_type!r}; known types: {known}"
-        ) from exc
+        raise KeyError(f"Unknown destination type {dest_type!r}; known types: {known}") from exc
     return factory(**spec)
 
 

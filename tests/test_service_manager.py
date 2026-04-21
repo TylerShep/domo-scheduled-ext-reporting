@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import pytest
 
-from app.services.base import DomoBase
 from app.service_manager.exceptions import ServiceManagerException
 from app.service_manager.manager import ServiceManager
+from app.services.base import DomoBase
 
 
 class _FakeReport(DomoBase):

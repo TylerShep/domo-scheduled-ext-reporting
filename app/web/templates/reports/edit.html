@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}
+  {%- if is_new %}New report{% else %}{{ filename }}{% endif -%}
+  &middot; {{ app_title }}
+{% endblock %}
+
+{% block content %}
+<section class="section" x-data="{ lastValidate: null }">
+  <header class="section__header">
+    <h1>
+      {% if is_new %}New report{% else %}Edit <code>{{ filename }}</code>{% endif %}
+    </h1>
+    <a href="/reports" class="btn btn--ghost">Back</a>
+  </header>
+
+  {% if error %}<p class="error">{{ error }}</p>{% endif %}
+
+  <form method="post" action="{% if is_new %}/reports{% else %}/reports/{{ filename }}{% endif %}">
+    <input type="hidden" name="csrf_token" value="{{ request.cookies.get('domo_csrf', '') }}">
+    {% if is_new %}
+    <label class="field">
+      <span>Filename</span>
+      <input name="filename" value="{{ filename or '' }}" placeholder="my_report.yaml" required>
+    </label>
+    {% endif %}
+    <label class="field">
+      <span>YAML</span>
+      <textarea name="content" rows="28" class="code-editor" spellcheck="false">{{ text }}</textarea>
+    </label>
+    <div class="actions">
+      <button type="submit" class="btn btn--primary">Save</button>
+      <button type="button"
+              class="btn btn--ghost"
+              @click="lastValidate = null;
+                      const body = new FormData();
+                      body.append('csrf_token', document.cookie.split('; ').find(c => c.startsWith('domo_csrf='))?.split('=')[1] || '');
+                      body.append('content', $el.parentElement.parentElement.querySelector('textarea').value);
+                      fetch('/reports/validate', { method: 'POST', body: body })
+                        .then(r => r.json()).then(j => lastValidate = j)">
+        Validate
+      </button>
+      <span x-show="lastValidate" class="pill" :class="lastValidate && lastValidate.ok ? 'pill--ok' : 'pill--err'"
+            x-text="lastValidate ? (lastValidate.ok ? 'Valid ✓' : ('Invalid: ' + lastValidate.error)) : ''"></span>
+    </div>
+  </form>
+</section>
+{% endblock %}

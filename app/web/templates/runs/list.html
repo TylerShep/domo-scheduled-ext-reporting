@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Runs &middot; {{ app_title }}{% endblock %}
+
+{% block content %}
+<section class="section">
+  <header class="section__header">
+    <h1>Runs</h1>
+    <form method="get" action="/runs" class="inline-form">
+      <input name="report" value="{{ filter_report }}" placeholder="filter by report name">
+      <button type="submit" class="btn btn--ghost">Filter</button>
+    </form>
+  </header>
+
+  {% if runs %}
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Started</th>
+        <th>Report</th>
+        <th>Status</th>
+        <th>Duration</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for run in runs %}
+      <tr>
+        <td>{{ run.started_at }}</td>
+        <td>{{ run.report_name }}</td>
+        <td><span class="pill pill--{{ run.status.value if run.status.value is defined else run.status }}">{{ run.status.value if run.status.value is defined else run.status }}</span></td>
+        <td>{% if run.finished_at %}{{ '%.2f'|format((run.finished_at - run.started_at).total_seconds()) }}s{% else %}-{% endif %}</td>
+        <td><a class="btn btn--ghost" href="/runs/{{ run.id }}">Details</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="empty">No runs recorded yet.</p>
+  {% endif %}
+</section>
+{% endblock %}

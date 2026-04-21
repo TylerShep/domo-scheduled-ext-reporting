@@ -28,9 +28,10 @@ YAML schema (all keys at the root of the file)::
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from collections.abc import Iterable
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
 import yaml
 
@@ -58,6 +59,8 @@ class ReportSpec:
     cards: list[dict[str, Any]]
     destinations: list[dict[str, Any]]
     schedule: str | None = None
+    datasets: list[dict[str, Any]] = field(default_factory=list)
+    cards_query: dict[str, Any] | None = None
     source_path: Path | None = None
 
 
@@ -72,21 +75,42 @@ class YamlReport(DomoBase):
         return self.spec.metadata_dataset_file_name
 
     def list_of_cards(self) -> list[list[Any]]:
+        explicit = self._rows_from_cards(self.spec.cards)
+        discovered = self._rows_from_query()
+        # Explicit cards come first so the user's hand-curated order wins
+        # when both are present.
+        return explicit + discovered
+
+    def _rows_from_cards(self, cards: list[dict[str, Any]]) -> list[list[Any]]:
         out: list[list[Any]] = []
-        for card in self.spec.cards:
+        for card in cards:
             row: list[Any] = [card["dashboard"], card["card"], card.get("viz_type", "")]
             overrides = {
                 k: v
                 for k, v in card.items()
-                if k in {"crop", "resize", "add_caption", "caption_text"}
+                if k in {"crop", "resize", "add_caption", "caption_text", "send_when"}
             }
             if overrides:
                 row.append(overrides)
             out.append(row)
         return out
 
+    def _rows_from_query(self) -> list[list[Any]]:
+        if not self.spec.cards_query:
+            return []
+        from app.configuration.card_resolver import (
+            resolve_cards_query,
+            resolved_cards_to_yaml_rows,
+        )
+
+        resolved = resolve_cards_query(self.spec.cards_query)
+        return self._rows_from_cards(resolved_cards_to_yaml_rows(resolved))
+
     def list_of_destinations(self) -> list[dict[str, Any]]:
         return list(self.spec.destinations)
+
+    def list_of_datasets(self) -> list[dict[str, Any]]:
+        return list(self.spec.datasets)
 
     def build_destinations(self) -> list[Destination]:
         return [build_destination(spec) for spec in self.list_of_destinations()]
@@ -95,6 +119,7 @@ class YamlReport(DomoBase):
 # ---------------------------------------------------------------------------
 # Discovery + validation
 # ---------------------------------------------------------------------------
+
 
 def discover_yaml_files(reports_dir: Path | None = None) -> list[Path]:
     """Return every ``*.yaml`` / ``*.yml`` file under ``reports_dir``."""
@@ -111,7 +136,9 @@ def parse_report_file(path: Path) -> ReportSpec:
     with path.open("r", encoding="utf-8") as fh:
         data = yaml.safe_load(fh) or {}
     if not isinstance(data, dict):
-        raise ReportConfigError(f"{path}: expected a mapping at the root, got {type(data).__name__}")
+        raise ReportConfigError(
+            f"{path}: expected a mapping at the root, got {type(data).__name__}"
+        )
     return _validate(data, path)
 
 
@@ -146,8 +173,10 @@ def validate_all(reports_dir: Path | None = None) -> tuple[list[ReportSpec], lis
 # Internal validation
 # ---------------------------------------------------------------------------
 
-_REQUIRED_TOP_LEVEL = {"name", "metadata_dataset_file_name", "cards", "destinations"}
+_REQUIRED_TOP_LEVEL = {"name", "metadata_dataset_file_name", "destinations"}
 _REQUIRED_CARD_KEYS = {"dashboard", "card", "viz_type"}
+_REQUIRED_DATASET_KEYS = {"name", "dataset_id"}
+_ALLOWED_DATASET_FORMATS = {"csv", "xlsx"}
 
 
 def _validate(data: dict[str, Any], path: Path) -> ReportSpec:
@@ -159,15 +188,65 @@ def _validate(data: dict[str, Any], path: Path) -> ReportSpec:
     if not name:
         raise ReportConfigError("'name' must be a non-empty string")
 
-    cards = _coerce_list(data["cards"], "cards", path)
-    for index, card in enumerate(cards):
-        if not isinstance(card, dict):
-            raise ReportConfigError(f"cards[{index}] must be a mapping, got {type(card).__name__}")
-        missing_card = _REQUIRED_CARD_KEYS - card.keys()
-        if missing_card:
+    raw_cards = data.get("cards")
+    raw_datasets = data.get("datasets")
+    raw_query = data.get("cards_query")
+    if not raw_cards and not raw_datasets and not raw_query:
+        raise ReportConfigError(
+            "Report must define at least one of 'cards', 'cards_query', or 'datasets'"
+        )
+
+    cards: list[dict[str, Any]] = []
+    if raw_cards is not None:
+        cards = _coerce_list(raw_cards, "cards", path)
+        for index, card in enumerate(cards):
+            if not isinstance(card, dict):
+                raise ReportConfigError(
+                    f"cards[{index}] must be a mapping, got {type(card).__name__}"
+                )
+            missing_card = _REQUIRED_CARD_KEYS - card.keys()
+            if missing_card:
+                raise ReportConfigError(
+                    f"cards[{index}] missing required keys: {sorted(missing_card)}"
+                )
+
+    cards_query: dict[str, Any] | None = None
+    if raw_query is not None:
+        if not isinstance(raw_query, dict):
             raise ReportConfigError(
-                f"cards[{index}] missing required keys: {sorted(missing_card)}"
+                f"'cards_query' must be a mapping, got {type(raw_query).__name__}"
             )
+        cards_query = dict(raw_query)
+        # Shallow sanity-check here; deeper validation happens lazily in
+        # app.configuration.card_resolver so we don't import the engine layer.
+        from app.configuration.card_resolver import _ALLOWED_QUERY_KEYS
+
+        unknown = set(cards_query) - _ALLOWED_QUERY_KEYS
+        if unknown:
+            raise ReportConfigError(
+                f"cards_query has unknown keys {sorted(unknown)}. "
+                f"Allowed: {sorted(_ALLOWED_QUERY_KEYS)}."
+            )
+
+    datasets: list[dict[str, Any]] = []
+    if raw_datasets is not None:
+        datasets = _coerce_list(raw_datasets, "datasets", path)
+        for index, ds in enumerate(datasets):
+            if not isinstance(ds, dict):
+                raise ReportConfigError(
+                    f"datasets[{index}] must be a mapping, got {type(ds).__name__}"
+                )
+            missing_ds = _REQUIRED_DATASET_KEYS - ds.keys()
+            if missing_ds:
+                raise ReportConfigError(
+                    f"datasets[{index}] missing required keys: {sorted(missing_ds)}"
+                )
+            fmt = str(ds.get("format", "csv")).lower()
+            if fmt not in _ALLOWED_DATASET_FORMATS:
+                raise ReportConfigError(
+                    f"datasets[{index}].format must be one of "
+                    f"{sorted(_ALLOWED_DATASET_FORMATS)}; got {fmt!r}"
+                )
 
     destinations = _coerce_list(data["destinations"], "destinations", path)
     for index, dest in enumerate(destinations):
@@ -188,6 +267,8 @@ def _validate(data: dict[str, Any], path: Path) -> ReportSpec:
         cards=cards,
         destinations=destinations,
         schedule=schedule,
+        datasets=datasets,
+        cards_query=cards_query,
         source_path=path,
     )
 

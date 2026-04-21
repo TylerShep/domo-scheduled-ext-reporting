@@ -12,8 +12,8 @@ preset defaults.
 from __future__ import annotations
 
 import datetime
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from typing import Mapping, Sequence
 
 from PIL import Image, ImageDraw, ImageFont
 
@@ -127,5 +127,7 @@ def _draw_caption(image: Image.Image, text: str) -> Image.Image:
 
     today = datetime.date.today().strftime("%Y-%m-%d")
     caption = f"{text}  -  {today}"
-    draw.text((margin, image.height + (band_height - 14) // 2), caption, fill=(80, 80, 80), font=font)
+    draw.text(
+        (margin, image.height + (band_height - 14) // 2), caption, fill=(80, 80, 80), font=font
+    )
     return canvas

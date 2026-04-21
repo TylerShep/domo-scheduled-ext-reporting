@@ -1,0 +1,16 @@
+<nav class="topnav">
+  <div class="topnav__brand">
+    <a href="/reports">{{ app_title }}</a>
+  </div>
+  <ul class="topnav__links">
+    <li><a href="/reports">Reports</a></li>
+    <li><a href="/runs">Runs</a></li>
+  </ul>
+  <div class="topnav__user">
+    <span>{{ user.username }}</span>
+    <form method="post" action="/logout" class="inline-form">
+      <input type="hidden" name="csrf_token" value="{{ request.cookies.get('domo_csrf', '') }}">
+      <button type="submit" class="btn btn--ghost">Log out</button>
+    </form>
+  </div>
+</nav>

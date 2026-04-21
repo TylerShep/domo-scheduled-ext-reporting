@@ -80,12 +80,12 @@ def test_destination_missing_type_raises(tmp_path):
         parse_report_file(file_path)
 
 
-def test_empty_cards_raises(tmp_path):
+def test_empty_cards_and_no_datasets_raises(tmp_path):
     payload = _valid_payload()
     payload["cards"] = []
     file_path = _write_yaml(tmp_path, "empty_cards", payload)
 
-    with pytest.raises(ReportConfigError, match="non-empty list"):
+    with pytest.raises(ReportConfigError, match="at least one of 'cards'"):
         parse_report_file(file_path)
 
 

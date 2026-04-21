@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ app_title }}{% endblock %}</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <script src="https://unpkg.com/htmx.org@1.9.12" integrity="sha384-ujb1lZYygJmzgSwoxRggbCHcjc0rB2XoQrxeTUQyRjrOnlCoYta87iKBWq3EsdM2" crossorigin="anonymous" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.5/dist/cdn.min.js" defer></script>
+  {% block head_extra %}{% endblock %}
+</head>
+<body x-data>
+  {% if user %}
+    {% include "_partials/nav.html" %}
+  {% endif %}
+  <main class="page">
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="footer">
+    <small>Domo Scheduled Reporting &middot; v2.0</small>
+  </footer>
+</body>
+</html>

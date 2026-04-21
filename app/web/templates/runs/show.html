@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Run {{ run.run_id }} &middot; {{ app_title }}{% endblock %}
+
+{% block content %}
+<section class="section">
+  <header class="section__header">
+    <h1>{{ run.report_name }}</h1>
+    <a href="/runs" class="btn btn--ghost">Back</a>
+  </header>
+
+  <dl class="kv">
+    <dt>Run ID</dt><dd><code>{{ run.id }}</code></dd>
+    <dt>Status</dt><dd><span class="pill pill--{{ run.status.value if run.status.value is defined else run.status }}">{{ run.status.value if run.status.value is defined else run.status }}</span></dd>
+    <dt>Started</dt><dd>{{ run.started_at }}</dd>
+    <dt>Finished</dt><dd>{{ run.finished_at or '-' }}</dd>
+    {% if run.error %}<dt>Error</dt><dd class="error">{{ run.error }}</dd>{% endif %}
+  </dl>
+
+  {% if run.cards %}
+  <h2>Cards</h2>
+  <table class="table">
+    <thead><tr><th>Name</th><th>Status</th><th>Reason</th></tr></thead>
+    <tbody>
+      {% for card in run.cards %}
+      <tr>
+        <td>{{ card.card_name }}</td>
+        <td><span class="pill pill--{{ 'skipped' if card.skipped else 'success' if not card.error else 'failure' }}">
+            {% if card.skipped %}skipped{% elif card.error %}failure{% else %}ok{% endif %}
+        </span></td>
+        <td>{% if card.skipped %}{{ card.skip_reason or '' }}{% elif card.error %}{{ card.error }}{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+
+  {% if run.destinations %}
+  <h2>Destinations</h2>
+  <table class="table">
+    <thead><tr><th>Destination</th><th>Attempted</th><th>Sent</th><th>Skipped</th><th>Error</th></tr></thead>
+    <tbody>
+      {% for dest in run.destinations %}
+      <tr>
+        <td>{{ dest.destination_label }}</td>
+        <td>{{ dest.cards_attempted }}</td>
+        <td>{{ dest.cards_sent }}</td>
+        <td>{{ dest.cards_skipped }}</td>
+        <td>{{ dest.error or '' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+</section>
+{% endblock %}

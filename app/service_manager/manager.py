@@ -11,11 +11,11 @@ initialized. Python subclasses can be added by passing them to
 
 from __future__ import annotations
 
-from typing import Iterable
+from collections.abc import Iterable
 
 from app.configuration.report_loader import load_yaml_reports
-from app.services.base import DomoBase
 from app.service_manager.exceptions import ServiceManagerException
+from app.services.base import DomoBase
 from app.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -82,9 +82,7 @@ class ServiceManager:
         cls._ensure_initialized()
         if key not in cls._registry:
             known = sorted(cls._registry.keys())
-            raise ServiceManagerException(
-                f"No report registered under {key!r}. Known: {known}"
-            )
+            raise ServiceManagerException(f"No report registered under {key!r}. Known: {known}")
         return list(cls._registry[key])
 
     @classmethod
@@ -100,9 +98,7 @@ class ServiceManager:
             try:
                 report.execute_service()
             except Exception as exc:
-                raise ServiceManagerException(
-                    f"Report {sync_key!r} failed: {exc}"
-                ) from exc
+                raise ServiceManagerException(f"Report {sync_key!r} failed: {exc}") from exc
 
     @classmethod
     def execute_all(cls) -> None:

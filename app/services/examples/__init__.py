@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from app.service_manager.manager import ServiceManager
 
 
-def register_examples(manager: type["ServiceManager"]) -> None:
+def register_examples(manager: type[ServiceManager]) -> None:
     """Called by ``ServiceManager._ensure_initialized`` at boot."""
 
     # Comment out (or delete this file's contents) if you don't want the
