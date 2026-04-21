@@ -1,0 +1,68 @@
+# Example GitHub Actions workflow that fires scheduled reports without
+# any always-on infrastructure. Rename to ".yaml" (drop ".example") and
+# add the secrets listed below to your repository.
+#
+# Required repository secrets:
+#   DOMO_INSTANCE
+#   DOMO_TOKEN
+#   DOMO_CARDS_META_DATASET_ID
+#   SLACK_BOT_USER_TOKEN     (if any destination is Slack)
+#   TEAMS_TENANT_ID          (if using Teams Graph)
+#   TEAMS_CLIENT_ID          (if using Teams Graph)
+#   TEAMS_CLIENT_SECRET      (if using Teams Graph)
+#   TEAMS_WEBHOOK_URL        (if using Teams webhook)
+
+name: Scheduled Domo Reports
+
+on:
+  schedule:
+    # 14:00 UTC every day. GitHub uses UTC.
+    - cron: "0 14 * * *"
+  workflow_dispatch:
+    inputs:
+      report:
+        description: "Report name (matches a key in config/reports/)"
+        required: true
+        default: "example_report"
+
+jobs:
+  run-reports:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      APP_ENV: prod
+      DOMO_INSTANCE: ${{ secrets.DOMO_INSTANCE }}
+      DOMO_TOKEN: ${{ secrets.DOMO_TOKEN }}
+      DOMO_CARDS_META_DATASET_ID: ${{ secrets.DOMO_CARDS_META_DATASET_ID }}
+      SLACK_BOT_USER_TOKEN: ${{ secrets.SLACK_BOT_USER_TOKEN }}
+      TEAMS_TENANT_ID: ${{ secrets.TEAMS_TENANT_ID }}
+      TEAMS_CLIENT_ID: ${{ secrets.TEAMS_CLIENT_ID }}
+      TEAMS_CLIENT_SECRET: ${{ secrets.TEAMS_CLIENT_SECRET }}
+      TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Set up JRE for Domo CLI
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run report (workflow_dispatch)
+        if: github.event_name == 'workflow_dispatch'
+        run: python main.py --list "${{ github.event.inputs.report }}"
+
+      - name: Run all scheduled reports (cron)
+        if: github.event_name == 'schedule'
+        run: python main.py --all

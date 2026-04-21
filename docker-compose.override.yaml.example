@@ -1,0 +1,12 @@
+# Copy to docker-compose.override.yaml for local dev hot-reload.
+# Compose will auto-merge it on top of docker-compose.yaml.
+#
+#   cp docker-compose.override.yaml.example docker-compose.override.yaml
+
+services:
+  app:
+    platform: linux/amd64
+    volumes:
+      - ./:/app
+    # Run the scheduler instead of `tail -f /dev/null`:
+    # command: ["python", "main.py", "--scheduler"]

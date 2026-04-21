@@ -1,0 +1,38 @@
+# Example: send the same report to BOTH a Microsoft Teams channel (via
+# Graph API) AND a backup webhook in case Graph permissions aren't ready.
+#
+# Graph API setup (one-time per tenant):
+#   - Register an Azure AD app at https://entra.microsoft.com
+#   - Grant application permissions: ChannelMessage.Send, Files.ReadWrite.All,
+#     Group.Read.All
+#   - Set TEAMS_TENANT_ID, TEAMS_CLIENT_ID, TEAMS_CLIENT_SECRET in .env.local
+#
+# Webhook setup (per channel):
+#   - In the Teams channel: ... -> Connectors -> Incoming Webhook -> Configure
+#   - Copy the URL into a unique env var (e.g. TEAMS_OPS_WEBHOOK)
+
+name: weekly_summary_teams
+
+metadata_dataset_file_name: weekly_summary_teams_metadata
+
+cards:
+  - dashboard: "Operations"
+    card: "Weekly Active Users"
+    viz_type: "Single Value"
+
+  - dashboard: "Operations"
+    card: "User Growth | Last 12 Weeks"
+    viz_type: "Line"
+    crop: [0, 50, 1100, 700]   # explicit override
+
+destinations:
+  - type: teams
+    auth_mode: graph
+    team_name: "Operations"
+    channel_name: "Weekly Reports"
+
+  - type: teams
+    auth_mode: webhook
+    webhook_url_env: "TEAMS_OPS_WEBHOOK"
+
+schedule: "0 13 * * MON"

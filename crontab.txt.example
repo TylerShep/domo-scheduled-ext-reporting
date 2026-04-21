@@ -1,0 +1,14 @@
+# Example host-side crontab for running reports without the in-container
+# APScheduler. Install with:
+#
+#   crontab crontab.txt.example
+#
+# See cron/example-report.sh for the wrapper each line invokes.
+
+BASEDIR=/srv/www/domo-scheduled-ext-reporting
+CRONDIR=/srv/www/domo-scheduled-ext-reporting/cron
+LOG_DIR=/var/log/domo-scheduled-ext-reporting
+
+# Edit/duplicate per report. Cron expression is in the *system* timezone.
+0 14 * * * $CRONDIR/example-report.sh >> $LOG_DIR/cron.log 2>&1
+# 0 15 * * MON-FRI $CRONDIR/weekly-summary.sh >> $LOG_DIR/cron.log 2>&1

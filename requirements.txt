@@ -1,0 +1,23 @@
+# Generated from pyproject.toml. To regenerate:
+#   pip install pip-tools && pip-compile pyproject.toml -o requirements.txt
+#
+# For development (tests/lint), also install:
+#   pip install -e ".[dev]"
+
+# Core
+pandas>=2.2,<3
+pillow>=10.4,<12
+pyyaml>=6.0,<7
+python-dotenv>=1.0,<2
+requests>=2.31,<3
+tenacity>=9.0,<10
+
+# Scheduling
+apscheduler>=3.10,<4
+
+# Slack
+slack_sdk>=3.33,<4
+certifi>=2024.8.30
+
+# Microsoft Teams (Graph API)
+msal>=1.30,<2

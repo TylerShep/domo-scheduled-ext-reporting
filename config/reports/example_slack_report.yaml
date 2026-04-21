@@ -1,0 +1,37 @@
+# Example: send a daily KPI dashboard to a Slack channel.
+#
+# 1. Create the metadata dataset in Domo with columns:
+#      CardID, CardName, CardURL, PageID, PageTItle
+#    Set DOMO_CARDS_META_DATASET_ID in .env.local to that dataset's ID.
+# 2. Replace the cards below with your real dashboard + card names.
+# 3. Make sure the "DOMO bot" Slack app is invited to your channel.
+# 4. Run:
+#      python main.py --list daily_kpis_slack
+
+name: daily_kpis_slack
+
+# Base file name (no extension) for the metadata CSV that gets exported
+# from your Domo metadata dataset for this run.
+metadata_dataset_file_name: daily_kpis_slack_metadata
+
+cards:
+  - dashboard: "Sales Overview"
+    card: "Daily Revenue"
+    viz_type: "Single Value"
+
+  - dashboard: "Sales Overview"
+    card: "Revenue Trend | Last 30 Days"
+    viz_type: "Line"
+
+  - dashboard: "Sales Overview"
+    card: "Top 10 Products | Yesterday"
+    viz_type: "Bar"
+    # Optional per-card overrides:
+    add_caption: true
+
+destinations:
+  - type: slack
+    channel_name: "daily-kpis"
+
+# Optional cron expression (UTC) consumed by `python main.py --scheduler`.
+schedule: "0 14 * * *"

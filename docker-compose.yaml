@@ -1,0 +1,12 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: domo-scheduled-ext-reporting:latest
+    container_name: domo-scheduled-ext-reporting
+    env_file:
+      - .env.local
+    environment:
+      - APP_ENV=${APP_ENV:-local}
+    restart: unless-stopped

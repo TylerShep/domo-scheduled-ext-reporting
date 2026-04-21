@@ -1,0 +1,8 @@
+# Optional global schedule overrides for `python main.py --scheduler`.
+# Map of report name -> cron expression (UTC). Takes precedence over the
+# `schedule:` field in the report's own YAML.
+#
+# Copy to schedule.yaml and edit. Leave commented to use per-report schedules.
+
+# daily_kpis_slack: "0 14 * * *"
+# weekly_summary_teams: "0 13 * * MON"
