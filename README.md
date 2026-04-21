@@ -1,6 +1,6 @@
 # domo-scheduled-ext-reporting
 
-[![CI](https://github.com/tyler-shepherd/domo-scheduled-ext-reporting/actions/workflows/ci.yaml/badge.svg)](https://github.com/tyler-shepherd/domo-scheduled-ext-reporting/actions/workflows/ci.yaml)
+[![CI](https://github.com/TylerShep/domo-scheduled-ext-reporting/actions/workflows/ci.yaml/badge.svg)](https://github.com/TylerShep/domo-scheduled-ext-reporting/actions/workflows/ci.yaml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![Coverage 85%](https://img.shields.io/badge/coverage-85%25-brightgreen.svg)](#testing)
@@ -62,7 +62,7 @@ Per-run lifecycle: resolve cards (explicit + auto-discovered) -> open a history 
 ## Quickstart (5 minutes, Docker)
 
 ```bash
-git clone https://github.com/tyler-shepherd/domo-scheduled-ext-reporting.git
+git clone https://github.com/TylerShep/domo-scheduled-ext-reporting.git
 cd domo-scheduled-ext-reporting
 cp .env.example .env.local
 # Edit .env.local with your Domo + Slack credentials.
@@ -171,7 +171,7 @@ To download the JAR on demand:
 domo-report --download-jar
 ```
 
-The downloader hits `https://github.com/tyler-shepherd/domo-scheduled-ext-reporting/releases/latest/download/domoUtil.jar`, verifies the SHA-256 against [`app/engines/JAR_VERSION.json`](app/engines/JAR_VERSION.json), and installs to `app/utils/domoUtil.jar`. Override the URL with `DOMO_JAR_URL`.
+The downloader hits `https://github.com/TylerShep/domo-scheduled-ext-reporting/releases/latest/download/domoUtil.jar`, verifies the SHA-256 against [`app/engines/JAR_VERSION.json`](app/engines/JAR_VERSION.json), and installs to `app/utils/domoUtil.jar`. Override the URL with `DOMO_JAR_URL`.
 
 ## Slack setup
 
@@ -470,7 +470,7 @@ pytest -k send_when                    # only conditional-sending tests
 
 ## Contributing
 
-PRs welcome. See [CONTRIBUTING.md](CONTRIBUTING.md). Open issues for bugs / feature requests on [GitHub](https://github.com/tyler-shepherd/domo-scheduled-ext-reporting/issues).
+PRs welcome. See [CONTRIBUTING.md](CONTRIBUTING.md). Open issues for bugs / feature requests on [GitHub](https://github.com/TylerShep/domo-scheduled-ext-reporting/issues).
 
 ## Acknowledgements
 

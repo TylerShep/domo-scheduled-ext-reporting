@@ -94,9 +94,9 @@ web = [
 domo-report = "main:main"
 
 [project.urls]
-Homepage = "https://github.com/tyler-shepherd/domo-scheduled-ext-reporting"
-Repository = "https://github.com/tyler-shepherd/domo-scheduled-ext-reporting"
-Issues = "https://github.com/tyler-shepherd/domo-scheduled-ext-reporting/issues"
+Homepage = "https://github.com/TylerShep/domo-scheduled-ext-reporting"
+Repository = "https://github.com/TylerShep/domo-scheduled-ext-reporting"
+Issues = "https://github.com/TylerShep/domo-scheduled-ext-reporting/issues"
 
 [tool.setuptools.packages.find]
 include = ["app*"]

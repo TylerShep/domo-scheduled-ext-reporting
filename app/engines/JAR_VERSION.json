@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "filename": "domoUtil.jar",
-  "url": "https://github.com/tyler-shepherd/domo-scheduled-ext-reporting/releases/download/jar-v1.0.0/domoUtil.jar",
+  "url": "https://github.com/TylerShep/domo-scheduled-ext-reporting/releases/download/jar-v1.0.0/domoUtil.jar",
   "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
   "notes": "Replace the sha256 placeholder after the first release is cut. The downloader will still verify anything you put in this file, so leaving a fake hash here guarantees that a fresh checkout cannot silently pull a tampered binary."
 }

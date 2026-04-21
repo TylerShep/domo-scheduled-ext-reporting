@@ -4,13 +4,13 @@ Thanks for your interest in contributing! This project is an open-source communi
 
 ## Quick links
 
-- Bugs / feature requests: [GitHub Issues](https://github.com/tyler-shepherd/domo-scheduled-ext-reporting/issues)
+- Bugs / feature requests: [GitHub Issues](https://github.com/TylerShep/domo-scheduled-ext-reporting/issues)
 - Pull requests: target `main`, keep them focused
 
 ## Development setup
 
 ```bash
-git clone https://github.com/tyler-shepherd/domo-scheduled-ext-reporting.git
+git clone https://github.com/TylerShep/domo-scheduled-ext-reporting.git
 cd domo-scheduled-ext-reporting
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
